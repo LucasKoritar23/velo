@@ -32,3 +32,5 @@ dist-ssr
 
 .vercel
 .env*
+.env
+#/environments/*.env

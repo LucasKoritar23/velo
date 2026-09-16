@@ -5,12 +5,32 @@ import { defineConfig, devices } from '@playwright/test';
  * https://github.com/motdotla/dotenv
  */
 import dotenv from 'dotenv';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '.env') });
+const rootEnvPath = path.resolve(__dirname, '.env');
+
+// The root file selects the local environment; CI receives its variables from the workflow.
+dotenv.config({ path: rootEnvPath });
+
+if (!process.env.CI) {
+  const environmentName = process.env.PLAYWRIGHT_ENV?.trim();
+
+  if (!environmentName || !/^[a-zA-Z0-9_-]+$/.test(environmentName)) {
+    throw new Error('PLAYWRIGHT_ENV must contain a valid local environment name.');
+  }
+
+  const environmentPath = path.resolve(__dirname, 'environments', `${environmentName}.env`);
+
+  if (!fs.existsSync(environmentPath)) {
+    throw new Error(`Environment file not found: ${environmentPath}`);
+  }
+
+  dotenv.config({ path: environmentPath, override: true });
+}
 
 /**
  * See https://playwright.dev/docs/test-configuration.
