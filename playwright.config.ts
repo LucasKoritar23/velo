@@ -98,10 +98,14 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'yarn dev',
-  //   url: 'http://localhost:5173',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  /* Run your local dev server before starting the tests outside CI */
+  ...(process.env.CI
+    ? {}
+    : {
+        webServer: {
+          command: 'yarn dev',
+          url: 'http://localhost:5173',
+          reuseExistingServer: true,
+        },
+      }),
 });
