@@ -92,6 +92,10 @@ jobs:
           --scope=$VERCEL_SCOPE)
           echo "deployment-url=$URL" >> $GITHUB_OUTPUT
 
+      # 8. Show deployment URL Preview
+      - name: Show deployment URL
+        run: 'echo "Deployment URL: ${{ steps.deploy.outputs.deployment-url }}"'
+
   e2e-tests:
     name: Run E2E Tests
     needs: [build-and-deploy]
