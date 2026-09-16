@@ -27,6 +27,7 @@ import {
 } from '@/store/configuratorStore';
 import { createOrder } from '@/hooks/useOrders';
 import { supabase } from '@/integrations/supabase/client';
+import { onlyDigits, isValidCpf, isValidEmailStrict } from '@/lib/validators';
 
 import logo from '@/assets/brand.svg';
 import glacierBlueAero from '@/assets/glacier-blue-aero-wheels.png';
@@ -58,12 +59,19 @@ const stores = [
   'Velô Ibirapuera - Av. Ibirapuera, 3000',
 ];
 
+
 const orderSchema = z.object({
-  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-  surname: z.string().min(2, 'Sobrenome deve ter pelo menos 2 caracteres'),
-  email: z.string().email('Email inválido'),
-  phone: z.string().min(14, 'Telefone inválido'),
-  cpf: z.string().min(14, 'CPF inválido'),
+  name: z.string().trim().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+  lastname: z.string().trim().min(2, 'Sobrenome deve ter pelo menos 2 caracteres'),
+  email: z
+    .string()
+    .trim()
+    .email('Email inválido')
+    .refine(isValidEmailStrict, 'Email inválido'),
+  phone: z
+    .string()
+    .refine((val) => onlyDigits(val).length === 11, 'Telefone inválido'),
+  document: z.string().refine((val) => isValidCpf(val), 'CPF inválido'),
   store: z.string().min(1, 'Selecione uma loja'),
   terms: z.boolean().refine((val) => val === true, 'Aceite os termos'),
 });
@@ -86,10 +94,10 @@ const Order = () => {
   const [entryValue, setEntryValue] = useState<number>(0);
   const [formData, setFormData] = useState<FormData>({
     name: '',
-    surname: '',
+    lastname: '',
     email: '',
     phone: '',
-    cpf: '',
+    document: '',
     store: '',
     terms: false,
   });
@@ -132,7 +140,7 @@ const Order = () => {
     if (paymentMethod === 'financiamento') {
       try {
         const { data, error } = await supabase.functions.invoke('credit-analysis', {
-          body: { cpf: formData.cpf },
+          body: { cpf: formData.document },
         });
 
         if (error || !data || typeof data.score !== 'number') {
@@ -203,10 +211,10 @@ const Order = () => {
       totalPrice: finalPrice,
       customer: {
         name: formData.name,
-        surname: formData.surname,
+        surname: formData.lastname,
         email: formData.email,
         phone: formData.phone,
-        cpf: formData.cpf,
+        cpf: formData.document,
         store: formData.store,
       },
       paymentMethod,
@@ -257,7 +265,7 @@ const Order = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Form */}
           <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form noValidate onSubmit={handleSubmit} className="space-y-8">
               {/* Personal Info */}
               <section className="bg-card rounded-lg p-6 shadow-elegant">
                 <h2 className="font-display text-lg font-semibold mb-6">Dados Pessoais</h2>
@@ -271,18 +279,18 @@ const Order = () => {
                       onChange={(e) => handleChange('name', e.target.value)}
                       className={cn(errors.name && 'border-destructive')}
                     />
-                    {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
+                    {errors.name && <p data-testid="error-name" className="text-sm text-destructive">{errors.name}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="surname">Sobrenome</Label>
+                    <Label htmlFor="lastname">Sobrenome</Label>
                     <Input
-                      id="surname"
-                      data-testid="checkout-surname"
-                      value={formData.surname}
-                      onChange={(e) => handleChange('surname', e.target.value)}
-                      className={cn(errors.surname && 'border-destructive')}
+                      id="lastname"
+                      data-testid="checkout-lastname"
+                      value={formData.lastname}
+                      onChange={(e) => handleChange('lastname', e.target.value)}
+                      className={cn(errors.lastname && 'border-destructive')}
                     />
-                    {errors.surname && <p className="text-sm text-destructive">{errors.surname}</p>}
+                    {errors.lastname && <p data-testid="error-lastname" className="text-sm text-destructive">{errors.lastname}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
@@ -294,7 +302,7 @@ const Order = () => {
                       onChange={(e) => handleChange('email', e.target.value)}
                       className={cn(errors.email && 'border-destructive')}
                     />
-                    {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                    {errors.email && <p data-testid="error-email" className="text-sm text-destructive">{errors.email}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Telefone</Label>
@@ -312,25 +320,25 @@ const Order = () => {
                         />
                       )}
                     </InputMask>
-                    {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+                    {errors.phone && <p data-testid="error-phone" className="text-sm text-destructive">{errors.phone}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="cpf">CPF</Label>
+                    <Label htmlFor="document">CPF</Label>
                     <InputMask
                       mask="999.999.999-99"
-                      value={formData.cpf}
-                      onChange={(e) => handleChange('cpf', e.target.value)}
+                      value={formData.document}
+                      onChange={(e) => handleChange('document', e.target.value)}
                     >
                       {(inputProps: React.InputHTMLAttributes<HTMLInputElement>) => (
                         <Input
                           {...inputProps}
-                          id="cpf"
-                          data-testid="checkout-cpf"
-                          className={cn(errors.cpf && 'border-destructive')}
+                          id="document"
+                          data-testid="checkout-document"
+                          className={cn(errors.document && 'border-destructive')}
                         />
                       )}
                     </InputMask>
-                    {errors.cpf && <p className="text-sm text-destructive">{errors.cpf}</p>}
+                    {errors.document && <p data-testid="error-document" className="text-sm text-destructive">{errors.document}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="store">Loja para Retirada</Label>
@@ -353,7 +361,7 @@ const Order = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                    {errors.store && <p className="text-sm text-destructive">{errors.store}</p>}
+                    {errors.store && <p data-testid="error-store" className="text-sm text-destructive">{errors.store}</p>}
                   </div>
                 </div>
               </section>
@@ -461,7 +469,7 @@ const Order = () => {
                         Política de Privacidade
                       </Link>
                     </Label>
-                    {errors.terms && <p className="text-sm text-destructive mt-1">{errors.terms}</p>}
+                    {errors.terms && <p data-testid="error-terms" className="text-sm text-destructive mt-1">{errors.terms}</p>}
                   </div>
                 </div>
               </section>

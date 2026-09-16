@@ -1,6 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../support/fixtures'
 
-test('Verificar titulo da página', async ({ page }) => {
-  await page.goto('http://localhost:5173');
-  await expect(page).toHaveTitle(/Velô by Papito/);
-});
+test('webapp deve estar online', async ({ page }) => {
+  await page.goto('/')
+
+  await expect(page).toHaveTitle(/Velô by Papito/)
+})
