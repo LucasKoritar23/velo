@@ -135,6 +135,7 @@ jobs:
       - name: Run E2E Regression Tests
         env:
           BASE_URL: ${{ needs.build-and-deploy.outputs.deployment-url }}
+          DATABASE_URL: ${{ vars.DATABASE_URL }}
         run: |
           echo "URL dos testes E2E: $BASE_URL"
           yarn playwright test
