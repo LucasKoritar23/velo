@@ -42,6 +42,31 @@ Acesse: `http://localhost:5173`
 
 ## Configuração do Supabase
 
+As configurações locais são separadas por ambiente. Os arquivos com credenciais reais não são versionados; apenas os arquivos de exemplo ficam no repositório.
+
+### Ambientes locais
+
+Na raiz do projeto, crie ou mantenha o arquivo `.env` com o ambiente desejado:
+
+```env
+PLAYWRIGHT_ENV=preview
+```
+
+Depois, copie o arquivo de exemplo correspondente e preencha as credenciais:
+
+```bash
+cp environments/preview.env.example environments/preview.env
+```
+
+Arquivos disponíveis:
+
+- `environments/preview.env.example` — ambiente Preview
+- `environments/production.env.example` — ambiente Production
+
+O valor de `PLAYWRIGHT_ENV` determina qual arquivo `environments/<valor>.env` será carregado pelos testes locais e qual banco Supabase será usado pela aplicação. Por exemplo, `PLAYWRIGHT_ENV=preview` carrega `environments/preview.env`.
+
+Não faça commit dos arquivos `preview.env` ou `production.env`. Eles são ignorados pelo Git e devem conter somente credenciais locais. As variáveis de ambiente usadas nos deploys devem ser configuradas diretamente na Vercel ou no Github Actions.
+
 ### 1. Criar Projeto
 
 1. Acesse [supabase.com](https://supabase.com) e crie uma conta
@@ -51,15 +76,7 @@ Acesse: `http://localhost:5173`
 
 ### 2. Variáveis de Ambiente
 
-Crie o arquivo `.env` na raiz do projeto:
-
-```env
-VITE_SUPABASE_PROJECT_ID="seu_project_id"
-VITE_SUPABASE_PUBLISHABLE_KEY="sua_chave_anon_publica"
-VITE_SUPABASE_URL="https://seu_project_id.supabase.co"
-```
-
-> Encontre essas informações em: **Project Settings → API**
+Preencha o arquivo de ambiente local correspondente ao valor de `PLAYWRIGHT_ENV`. Encontre as informações do projeto em **Project Settings → API**. Nunca coloque credenciais reais no `.env` raiz ou nos arquivos `.example`.
 
 ### 3. Deploy (banco + functions)
 
