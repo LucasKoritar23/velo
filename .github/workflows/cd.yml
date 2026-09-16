@@ -126,9 +126,11 @@ jobs:
 
       # 6. Execução dos Testes de Regressão
       - name: Run E2E Regression Tests
-        run: yarn playwright test
         env:
           BASE_URL: ${{ needs.build-and-deploy.outputs.deployment-url }}
+        run: |
+          echo "URL dos testes E2E: $BASE_URL"
+          yarn playwright test
 
       # 7. Relatório de Testes Automatizados
       - name: Upload Playwright report
